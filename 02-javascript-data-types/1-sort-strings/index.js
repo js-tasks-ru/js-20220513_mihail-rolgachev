@@ -4,20 +4,19 @@
  * @param {string} [param="asc"] param - the sorting type "asc" or "desc"
  * @returns {string[]}
  */
-function compareDesc(fist, second)
+function comparator(fist, second, collator)
 {
-    if (fist > second) return 1;
-    if (fist === second) return 0;
-    return -1;
+    return collator.compare(fist, second)
 }
-export function sortStrings(arr, param = 'asc') {
-
-switch (param)
+export function sortStrings(arr, param = 'asc') 
 {
-    case 'asc': return arr.sort();
-    case 'desc': return arr.sort(compareDesc);
-    default: throw new Error("Неверное значение параметра сортировки " + param);
+    var result = JSON.parse(JSON.stringify(arr));
+    const collator = new Intl.Collator("ru", { caseFirst: "upper" });
+    switch (param)
+    {
+        case 'asc': return result.sort((fist, second) => comparator(fist, second, collator));
+        case 'desc': return result.sort((fist, second) => -comparator(fist, second, collator));
+        default: throw new Error("Неверное значение параметра сортировки " + param);
+    }    
 }
-    
-}
-Console.Log(sortStrings(['b', 'a', 'c'], 'asc'));
+console.log(sortStrings(['абрикос', 'Абрикос', 'яблоко', 'Яблоко', 'ёжик', 'Ёжик']));
