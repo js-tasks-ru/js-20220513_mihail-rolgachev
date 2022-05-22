@@ -5,5 +5,6 @@
  * @returns {object} - returns the new object
  */
 export const omit = (obj, ...fields) => {
-
+    const filtered = Object.entries(obj).filter(([key, val])=>!fields.includes(key));
+    return Object.fromEntries(filtered);
 };
