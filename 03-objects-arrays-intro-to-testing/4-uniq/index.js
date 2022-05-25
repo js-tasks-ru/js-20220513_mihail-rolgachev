@@ -5,6 +5,6 @@
  */
 export function uniq(arr) {
     if (!arr) return [];
-return [...new Set(arr)];
+    return Array.from(new Set(arr));
 }
 console.log(uniq([1, 'a', 'a', 2, 2]));
