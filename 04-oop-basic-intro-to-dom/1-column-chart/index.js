@@ -1,58 +1,79 @@
 export default class ColumnChart {
-  constructor(params) {
-    this.data = params['data'];
-    this.label = params['label'];
-    this.value = params['value'];
-    this.link = params['link'];
+  constructor({
+    data = [],
+    label = "",
+    value = "",
+    link="",
+    formatHeading = (str)=> {return str}
+  } = {}) {
+    this.data = data;
+    this.label = label;
+    this.value = value;
+    this.link = link;
+    this.formatHeading = formatHeading;
     this.render();
   }
 element = "";
-
+chartHeight = 50;
+dataElements = {};
 getTemplate()
 {
-  return `<div className="dashboard__chart_orders">
-      <div className="column-chart" style="--chart-height: 50">
-        <div className="column-chart__title">
-          {{title}}
-          {{link}}
+  return `
+      <div class="dashboard__chart_orders">
+      <div class="column-chart" style="--chart-height: 50">
+        <div class="column-chart__title">
+          Total ${this.label}
+          ${this.getLinkTemplate()}</a>
         </div>
-        <div className="column-chart__container">
-          <div data-element="header" className="column-chart__header">{{header}}</div>
-          <div data-element="body" className="column-chart__chart">
-          {{chartData}}
+        <div class="column-chart__container">
+          <div data-element="header" class="column-chart__header">${this.formatHeading(this.value)}</div>
+          <div data-element="body" class="column-chart__chart">
+            ${this.getItemsTemplate()}
           </div>
-        </div>
+
       </div>
     </div>`;
 }
-getItemTemplate(itemData)
+getLoadingTemplate()
 {
-  let coltemplate =  `<div style="--value: {{value}}" data-tooltip="{{percent}}%"></div>`;
-  coltemplate = coltemplate.replace("{{value}}", itemData.value);
-  coltemplate = coltemplate.replace("{{percent}}", itemData.percent);
-  return coltemplate;
+  return `
+    <div class="column-chart column-chart_loading" style="--chart-height: 50">
+      <div class="column-chart__title">
+        Total ${this.label}
+        ${this.getLinkTemplate()}</a>
+      </div>
+      <div class="column-chart__container">
+        <div data-element="header" class="column-chart__header">${this.formatHeading(this.value)}</div>
+        <div data-element="body" class="column-chart__chart">
+        </div>
+      </div>
+    </div>`
 }
 getLinkTemplate()
 {
   if (!this.link) return "";
-  const template =  `<a href="{{link}}" class="column-chart__link">{{link}}</a>`;
-  return template.replaceAll("{{link}}", this.link);
+  return `<a href="${this.link}" class="column-chart__link">{this.link}</a>`;
 }
-render() {
-  this.element = document.createElement("div");
-  let template = this.getTemplate();
-  template = template.replace("{{title}}", this.label);
-  template = template.replace("{{header}}", this.value);
-  template = template.replace("{{link}}", this.getLinkTemplate());
+getItemsTemplate()
+{
   const colProps = this.getColumnProps();
   let chartData = "";
   for (const colProp of colProps) {
-    chartData += this.getItemTemplate(colProp);
+    chartData += `<div style="--value: ${colProp.value}" data-tooltip="${colProp.percent}"></div>`;
   }
-  template = template.replace("{{chartData}}", chartData);
+  return chartData;
+}
+render() {
+  this.element = document.createElement("div");
+  const template = (this.data.length > 0) ? this.getTemplate() : this.getLoadingTemplate();
   this.element.innerHTML = template;
   this.element = this.element.firstElementChild;
-
+  this.readSubElements();
+}
+update(data)
+{
+  this.data = data;
+  this.dataElements["body"].innerHTML = this.getItemsTemplate();
 }
 remove()
 {
@@ -62,6 +83,17 @@ destroy()
 {
   this.remove();
   //destroing
+}
+readSubElements()
+{
+  this.dataElements = {};
+  const elements = this.element.querySelectorAll('[data-element]');
+  elements.forEach((subElement)=>
+  {
+    console.log(subElement.dataset.element);
+    const name = subElement.dataset.element;
+    this.dataElements[name] = subElement;
+  });
 }
 getColumnProps() {
   if (this.data === undefined) return [];
