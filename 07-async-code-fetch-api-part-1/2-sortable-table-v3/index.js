@@ -97,8 +97,11 @@ export default class SortableTable extends ComponentProto {
     if (!column) return;
     this.sorted = column.dataset;
     this.headerComponent.setOrderArrow(column);
-    this.sortOnClient();
-
+    if (this.isSortLocally) {
+      this.sortOnClient();
+    } else {
+      this.sortOnServer();
+    }
   }
   update (data = this.data)
   {
